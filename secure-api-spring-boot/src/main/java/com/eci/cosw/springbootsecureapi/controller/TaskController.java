@@ -28,7 +28,7 @@ public class TaskController
         this.taskService = taskService;
     }
 
-    @CrossOrigin( origins = "http://localhost:3000" )
+    @CrossOrigin( origins = "*" )
     @RequestMapping( value = "/task", method = RequestMethod.GET )
     public List<Task> getTasksList()
     {

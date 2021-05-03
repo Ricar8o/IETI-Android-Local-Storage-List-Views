@@ -82,7 +82,7 @@ public class LoginActivity
         }
     }
 
-    private void showErrorMessage( final View view )
+    private void showErrorMessage(final View view )
     {
         runOnUiThread( new Runnable()
         {
@@ -90,7 +90,8 @@ public class LoginActivity
             public void run()
             {
                 view.setEnabled( true );
-                Snackbar.make( view, getString( R.string.server_error_message ), Snackbar.LENGTH_LONG );
+                Snackbar snackbar = Snackbar.make( view, getString( R.string.server_error_message ), Snackbar.LENGTH_LONG );
+                snackbar.show();
             }
         } );
 

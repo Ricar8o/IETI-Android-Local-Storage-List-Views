@@ -11,10 +11,22 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import co.edu.eci.ieti.R;
+import co.edu.eci.ieti.android.network.RetrofitNetwork;
+import co.edu.eci.ieti.android.network.data.LoginWrapper;
+import co.edu.eci.ieti.android.network.data.Task;
+import co.edu.eci.ieti.android.network.data.Token;
 import co.edu.eci.ieti.android.storage.Storage;
+import retrofit2.Call;
+import retrofit2.Response;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity
     extends AppCompatActivity
@@ -22,6 +34,8 @@ public class MainActivity
 {
 
     private Storage storage;
+    private RetrofitNetwork retrofitNetwork;
+    private final ExecutorService executorService = Executors.newFixedThreadPool( 1 );
 
     @Override
     protected void onCreate( Bundle savedInstanceState )
@@ -52,6 +66,33 @@ public class MainActivity
 
         NavigationView navigationView = findViewById( R.id.nav_view );
         navigationView.setNavigationItemSelectedListener( this );
+
+        retrofitNetwork = new RetrofitNetwork(storage.getToken());
+    }
+
+    public void onButtonClicked( View view )
+    {
+            executorService.execute( new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    try
+                    {
+                        Call<List<Task>> call = retrofitNetwork.getTaskService().getTasks();
+                        Response<List<Task>> response = call.execute();
+                        if ( response.isSuccessful() ) {
+                            System.out.println("-------------------------------------------");
+                            System.out.println(response.body());
+                        }
+
+                    }
+                    catch ( IOException e )
+                    {
+                        e.printStackTrace();
+                    }
+                }
+            } );
     }
 
     @Override
