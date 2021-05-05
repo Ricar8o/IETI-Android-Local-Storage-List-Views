@@ -12,9 +12,8 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import co.edu.eci.ieti.R;
 import co.edu.eci.ieti.android.network.RetrofitNetwork;
-import co.edu.eci.ieti.android.network.data.LoginWrapper;
-import co.edu.eci.ieti.android.network.data.Task;
-import co.edu.eci.ieti.android.network.data.Token;
+import co.edu.eci.ieti.android.model.Task;
+import co.edu.eci.ieti.android.repository.TaskRepository;
 import co.edu.eci.ieti.android.storage.Storage;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -36,6 +35,8 @@ public class MainActivity
     private Storage storage;
     private RetrofitNetwork retrofitNetwork;
     private final ExecutorService executorService = Executors.newFixedThreadPool( 1 );
+
+    private TaskRepository taskRepository;
 
     @Override
     protected void onCreate( Bundle savedInstanceState )
@@ -68,31 +69,32 @@ public class MainActivity
         navigationView.setNavigationItemSelectedListener( this );
 
         retrofitNetwork = new RetrofitNetwork(storage.getToken());
+
+        taskRepository = new TaskRepository(getApplication());
     }
 
-    public void onButtonClicked( View view )
-    {
-            executorService.execute( new Runnable()
-            {
-                @Override
-                public void run()
-                {
-                    try
-                    {
-                        Call<List<Task>> call = retrofitNetwork.getTaskService().getTasks();
-                        Response<List<Task>> response = call.execute();
-                        if ( response.isSuccessful() ) {
-                            System.out.println("-------------------------------------------");
-                            System.out.println(response.body());
+    public void onButtonClicked( View view ) {
+        executorService.execute( new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Call<List<Task>> call = retrofitNetwork.getTaskService().getTasks();
+                    Response<List<Task>> response = call.execute();
+                    if ( response.isSuccessful() ) {
+                        for (Task t : response.body()){
+                            taskRepository.insert(t);
                         }
-
                     }
-                    catch ( IOException e )
-                    {
-                        e.printStackTrace();
-                    }
+                    System.out.println("-------------------------------------------");
+                    System.out.println(response.body());
                 }
-            } );
+                catch ( IOException e ) {
+                    e.printStackTrace();
+                }
+            }
+        } );
+
+
     }
 
     @Override

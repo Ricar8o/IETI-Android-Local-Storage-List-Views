@@ -1,15 +1,22 @@
-package co.edu.eci.ieti.android.network.data;
+package co.edu.eci.ieti.android.model;
+
+import androidx.annotation.NonNull;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
 import java.util.Date;
 
+@Entity
 public class Task {
+    @PrimaryKey
+    @NonNull
     private long id;
     private String description;
     private int priority;
     private String assignedTo;
     private Date dueDate;
 
-    public Task(){}
+    // public Task(){}
 
     public Task(long id, String description, int priority, String assignedTo, Date dueDate) {
         this.id = id;
