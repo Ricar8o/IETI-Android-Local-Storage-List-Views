@@ -93,8 +93,6 @@ public class MainActivity
                 }
             }
         } );
-
-
     }
 
     @Override
