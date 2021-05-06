@@ -10,11 +10,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import co.edu.eci.ieti.R;
+import co.edu.eci.ieti.android.adapter.TasksAdapter;
 import co.edu.eci.ieti.android.network.RetrofitNetwork;
 import co.edu.eci.ieti.android.model.Task;
 import co.edu.eci.ieti.android.repository.TaskRepository;
 import co.edu.eci.ieti.android.storage.Storage;
+import co.edu.eci.ieti.android.viewmodel.TaskViewModel;
 import retrofit2.Call;
 import retrofit2.Response;
 
@@ -36,57 +42,81 @@ public class MainActivity
     private RetrofitNetwork retrofitNetwork;
     private final ExecutorService executorService = Executors.newFixedThreadPool( 1 );
 
-    private TaskRepository taskRepository;
+    private TaskViewModel taskViewModel;
+    private RecyclerView recyclerView;
+    private List<Task> taskList;
+    final TasksAdapter tasksAdapter = new TasksAdapter();
 
     @Override
-    protected void onCreate( Bundle savedInstanceState )
-    {
-        super.onCreate( savedInstanceState );
-        setContentView( R.layout.activity_main );
-        storage = new Storage( this );
-        Toolbar toolbar = findViewById( R.id.toolbar );
-        setSupportActionBar( toolbar );
+    protected void onCreate( Bundle savedInstanceState ) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        storage = new Storage(this);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = findViewById( R.id.fab );
-        fab.setOnClickListener( new View.OnClickListener()
-        {
+        FloatingActionButton fab = findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick( View view )
-            {
-                Snackbar.make( view, "Replace with your own action", Snackbar.LENGTH_LONG ).setAction( "Action",
-                                                                                                       null ).show();
+            public void onClick(View view) {
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action",
+                        null).show();
             }
-        } );
+        });
 
-        DrawerLayout drawer = findViewById( R.id.drawer_layout );
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle =
-            new ActionBarDrawerToggle( this, drawer, toolbar, R.string.navigation_drawer_open,
-                                       R.string.navigation_drawer_close );
-        drawer.addDrawerListener( toggle );
+                new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open,
+                        R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = findViewById( R.id.nav_view );
-        navigationView.setNavigationItemSelectedListener( this );
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
 
         retrofitNetwork = new RetrofitNetwork(storage.getToken());
 
-        taskRepository = new TaskRepository(getApplication());
+        taskViewModel = new TaskViewModel(getApplication());
+        retrieveTasks();
+
+        recyclerView = findViewById(R.id.recyclerView);
+        configureRecyclerView();
+
+        taskViewModel.getAllTasks().observe(this, tasks -> {
+            tasksAdapter.updateTasks(tasks);
+        });
+
     }
 
-    public void onButtonClicked( View view ) {
+    // This method is just in case that tasks does not appear
+    public void updateTasks(View view){
+        tasksAdapter.updateTasks(taskList);
+    }
+
+    private void configureRecyclerView() {
+
+        recyclerView.setHasFixedSize( true );
+        recyclerView.setAdapter( tasksAdapter );
+        recyclerView.setLayoutManager(new LinearLayoutManager( this ));
+    }
+
+    public void retrieveTasks() {
         executorService.execute( new Runnable() {
             @Override
             public void run() {
                 try {
                     Call<List<Task>> call = retrofitNetwork.getTaskService().getTasks();
                     Response<List<Task>> response = call.execute();
+                    System.out.println("-------------------------------------------");
+
                     if ( response.isSuccessful() ) {
                         for (Task t : response.body()){
-                            taskRepository.insert(t);
+                            System.out.println(t);
+                            taskViewModel.insert(t);
                         }
                     }
-                    System.out.println("-------------------------------------------");
-                    System.out.println(response.body());
+                    taskList = response.body();
+
                 }
                 catch ( IOException e ) {
                     e.printStackTrace();
