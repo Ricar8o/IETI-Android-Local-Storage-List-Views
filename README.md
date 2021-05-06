@@ -11,7 +11,7 @@
 
 ## Run Android 
     
-    open AndroidProject folder in Android Studio
+    open android-local-storage-list-views folder in Android Studio
     Run app
 
 ## Default Credentials
@@ -21,8 +21,6 @@
 
 # img
 
-![Login](img/Login.jpg)
+![Login](img/login.jpg)
 
 ![Home](img/home.jpg)
-
-![Home](img/bar.jpg)
