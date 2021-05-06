@@ -110,6 +110,7 @@ public class MainActivity
                     System.out.println("-------------------------------------------");
 
                     if ( response.isSuccessful() ) {
+                        taskViewModel.deleteAll();
                         for (Task t : response.body()){
                             System.out.println(t);
                             taskViewModel.insert(t);
